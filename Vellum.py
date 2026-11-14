@@ -9,12 +9,12 @@ st.caption("Photo dalo -> Kahani banegi -> Awaz banegi")
 # --- Sidebar ---
 st.sidebar.header("⚙️ Settings")
 groq_key = st.sidebar.text_input("Groq API Key", type="password")
-groq_model = st.sidebar.text_input("Groq Model", value="openai/gpt-oss-120b")
+groq_model = st.sidebar.text_input("Groq Model", value="meta-llama/llama-4-scout-17b-16e-instruct")
 
 # --- Language ---
 lang_map = {
     "Urdu (اردو)": "ur",
-    "Sindhi (سنڌي)": "sd",
+    "Sindhi (سنڌي)": "ur", # gTTS me Sindhi nahi, is liye Urdu awaz use hogi
     "Hindi (हिन्दी)": "hi",
     "Arabic (العربية)": "ar",
     "English": "en",
@@ -26,7 +26,6 @@ lang_code = lang_map[lang_choice]
 
 genre = st.selectbox("🎭 Genre", ["Noir Mystery", "Literary Fiction", "Gothic", "Speculative", "Intimate Memoir", "Horror", "Love Story", "Village Story"])
 
-# --- Photo Upload ---
 uploaded = st.file_uploader("📸 Photo Upload karo", type=["jpg","png","jpeg"])
 if uploaded:
     st.image(uploaded, caption="Aap ki Photo", use_container_width=True)
@@ -41,10 +40,8 @@ if st.button("✨ Kahani Banao", use_container_width=True):
     else:
         with st.spinner("Kahani likhi ja rahi hai..."):
             import requests
-            # Photo ko base64 me badlo
             img_bytes = uploaded.getvalue()
             b64 = base64.b64encode(img_bytes).decode()
-
             prompt = f"""You are a master storyteller like Vellum.
             Look at this image carefully.
             Write a beautiful, emotional, cinematic story in {lang_name} language ONLY.
@@ -58,7 +55,6 @@ if st.button("✨ Kahani Banao", use_container_width=True):
             - Give a title at top.
             - Return ONLY story, no English explanation.
             """
-
             headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
             payload = {
                 "model": groq_model,
@@ -76,17 +72,16 @@ if st.button("✨ Kahani Banao", use_container_width=True):
                 st.session_state["story"] = story
                 st.success(f"✅ Kahani {lang_name} me ban gayi!")
             else:
-                st.error("Groq Fail: " + r.text[:300])
+                st.error("Groq Fail: " + r.text[:500])
 
-# --- Story Show + Voice ---
 if "story" in st.session_state:
     story = st.text_area("📖 Aap ki Kahani", st.session_state["story"], height=350)
     st.session_state["story"] = story
-
     if st.button("🎙️ Awaz Banao", use_container_width=True):
         with st.spinner("Awaz ban rahi hai..."):
             try:
-                tts = gTTS(text=story, lang=lang_code, slow=False)
+                # gTTS lambi kahani ko tukron me karega
+                tts = gTTS(text=story[:4000], lang=lang_code, slow=False)
                 buf = io.BytesIO()
                 tts.write_to_fp(buf)
                 buf.seek(0)
@@ -94,4 +89,4 @@ if "story" in st.session_state:
                 st.download_button("⬇️ MP3 Download", buf, file_name="mehar_vellum.mp3")
             except Exception as e:
                 st.error(f"Awaz me masla: {e}")
-                st.info("Sindhi ke liye agar gTTS fail ho to Urdu select karke try karo, phir Sindhi me dobara try karo.")
+                st.info("Sindhi ke liye Urdu select karke try karo.")
