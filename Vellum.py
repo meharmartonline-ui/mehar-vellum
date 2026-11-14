@@ -8,7 +8,9 @@ st.caption("Photo dalo -> Kahani banegi -> Awaz banegi")
 
 # --- Sidebar ---
 st.sidebar.header("⚙️ Settings")
-groq_key = st.sidebar.text_input("Groq API Key", type="password")
+groq_key = st.secrets.get("GROQ_API_KEY", "")
+if not groq_key:
+    groq_key = st.sidebar.text_input("Groq API Key", type="password")
 groq_model = st.sidebar.text_input("Groq Model", value="meta-llama/llama-4-scout-17b-16e-instruct")
 
 # NEW: Voice Speed
