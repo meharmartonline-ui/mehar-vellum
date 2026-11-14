@@ -1,6 +1,6 @@
 import streamlit as st
 import io, base64
-from gtts import gtts
+from gtts import gTTS
 
 st.set_page_config(page_title="MEHAR VELLUM", layout="centered")
 st.title("🌍 MEHAR VELLUM")
